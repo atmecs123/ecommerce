@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"myproject/database"
-	"myproject/models"
+	"ecommerce/database"
+	"ecommerce/models"
 	"net/http"
 	"strconv"
 

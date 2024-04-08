@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"myproject/products"
+	"ecommerce/products"
 	"net/http"
 
 	"github.com/gorilla/mux"
