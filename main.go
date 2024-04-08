@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"ecommerce/products"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
