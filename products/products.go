@@ -210,6 +210,7 @@ func GetProductsPaginated(w http.ResponseWriter, r *http.Request) {
 		productLog.Error(err, "Error getting products list")
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 	}
-
+	ctx := r.Context()
+	fmt.Println("##### context value is #######", ctx.Value("uuid"))
 	respondWithJSON(w, http.StatusOK, products)
 }

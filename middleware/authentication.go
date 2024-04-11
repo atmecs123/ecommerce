@@ -1,7 +1,9 @@
 package middleware
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -27,6 +29,15 @@ var jwtKey = []byte("my_secret_key")
 // If the token is missing or invalid, it will block the request; otherwise, it will pass control to the next handler.
 func AuthMiddleWare(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		ctx = context.WithValue(ctx, "uuid", "123456789")
+		//The middleware sets a timeout for the request context.
+		//If the handler takes longer than the specified timeout duration, the request will be aborted.
+		ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+		defer cancel()
+		r = r.WithContext(ctx)
+		fmt.Println("#### inside authmiddleware ####")
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
 			http.Error(w, "Authorization header is required", http.StatusUnauthorized)
@@ -47,8 +58,30 @@ func AuthMiddleWare(next http.Handler) http.Handler {
 			http.Error(w, "Invalid token", http.StatusUnauthorized)
 			return
 		}
+		// Create a channel to signal the completion of the request handling
+		done := make(chan bool, 1)
+		//It runs the next handler in a separate goroutine,
+		//which allows the middleware to listen for the completion of the handler or the timeout signal, whichever comes first.
+		go func() {
+			next.ServeHTTP(w, r)
+			done <- true
+		}()
 
-		next.ServeHTTP(w, r)
+		// Listen on multiple channels using select
+		select {
+		case <-ctx.Done(): // If the context's deadline is exceeded
+			switch ctx.Err() {
+			case context.DeadlineExceeded:
+				w.WriteHeader(http.StatusGatewayTimeout)
+				fmt.Fprintln(w, "Request timed out")
+			case context.Canceled:
+				fmt.Fprintln(w, "Request was canceled")
+			}
+		//A channel (done) is used to signal the completion of the handler.
+		//This allows the middleware to stop waiting if the handler finishes before the timeout.
+		case <-done:
+
+		}
 	})
 }
 
