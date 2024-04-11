@@ -35,7 +35,10 @@ func main() {
 	r.Handle("/product", middleware.AuthMiddleWare(http.HandlerFunc(products.UpdateProduct))).Methods("PUT")
 	r.Handle("/product/{id}", middleware.AuthMiddleWare(http.HandlerFunc(products.DeleteProduct))).Methods("DELETE")
 	r.Handle("/product/{id}", middleware.AuthMiddleWare(http.HandlerFunc(products.GetProduct))).Methods("GET")
+	//API can take the query parameters for pagination /product?page=<pagenumber>&limit=<limit>
 	r.Handle("/product", middleware.AuthMiddleWare(http.HandlerFunc(products.GetProducts))).Methods("GET")
+	//API can take the query parameters for pagination on database /product?offset=<offset>&limit=<limit>
+	r.Handle("/products", middleware.AuthMiddleWare(http.HandlerFunc(products.GetProductsPaginated))).Methods("GET")
 	fmt.Println("Listening on 9000")
 	http.ListenAndServe(":9000", r)
 

@@ -55,7 +55,7 @@ func AuthMiddleWare(next http.Handler) http.Handler {
 func generateJWTToken() (string, error) {
 	//create the claims
 	claims := &jwt.StandardClaims{
-		ExpiresAt: time.Now().Add(5 * time.Minute).Unix(),
+		ExpiresAt: time.Now().Add(20 * time.Minute).Unix(),
 		Issuer:    "ecommerce",
 	}
 

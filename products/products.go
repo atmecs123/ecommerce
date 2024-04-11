@@ -148,10 +148,68 @@ func GetProduct(w http.ResponseWriter, r *http.Request) {
 func GetProducts(w http.ResponseWriter, r *http.Request) {
 	productLog.Info("Enter get products")
 	var products []models.Product
-	err := models.GetProducts(database.DB, &products)
+	defaultpage := 1
+	defaultlimit := 5
+	query := r.URL.Query()
+	pageParam := query.Get("page")
+	limitParam := query.Get("limit")
+	err := models.GetProducts(database.DB, &products, 0, 0)
 	if err != nil {
 		productLog.Error(err, "Error getting products list")
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 	}
+	if pageParam == "" && limitParam == "" {
+		//No pagination parameters return all elements
+		respondWithJSON(w, http.StatusOK, products)
+		return
+	}
+
+	page, err := strconv.Atoi(r.URL.Query().Get("page"))
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid page number")
+		return
+	}
+
+	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid limit number")
+		return
+	}
+
+	if page < 1 {
+		page = defaultpage
+	}
+	if limit < 1 {
+		limit = defaultlimit
+	}
+	startIndex := (page - 1) * limit
+	endIndex := startIndex + limit
+	if startIndex > len(products) {
+		startIndex = len(products)
+	}
+	if endIndex > len(products) {
+		endIndex = len(products)
+	}
+	fmt.Println("start index", startIndex)
+	fmt.Println("start index", endIndex)
+	fmt.Println("products", products)
+	paginatedProducts := products[startIndex:endIndex]
+	respondWithJSON(w, http.StatusOK, paginatedProducts)
+}
+
+func GetProductsPaginated(w http.ResponseWriter, r *http.Request) {
+	productLog.Info("Enter get products")
+	var products []models.Product
+	//We extract page and limit parameters from the query string. These determine which portion of the data to send back.
+	//The logic then calculates the start and end indexes based on these parameters and slices the items accordingly.
+	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+
+	err := models.GetProducts(database.DB, &products, offset, limit)
+	if err != nil {
+		productLog.Error(err, "Error getting products list")
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+	}
+
 	respondWithJSON(w, http.StatusOK, products)
 }

@@ -44,8 +44,13 @@ func GetProduct(db *gorm.DB, product *Product, id int) error {
 	return err
 }
 
-func GetProducts(db *gorm.DB, product *[]Product) error {
-	err := db.Find(product).Error
+func GetProducts(db *gorm.DB, product *[]Product, offset, limit int) error {
+	var err error
+	if offset != 0 || limit != 0 {
+		err = db.Limit(limit).Offset(offset).Find(product).Error
+		return err
+	}
+	err = db.Find(product).Error
 	if err != nil {
 		fmt.Println("Error getting the products to database", err)
 	}
