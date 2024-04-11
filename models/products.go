@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"fmt"
 
 	"gorm.io/gorm"
@@ -13,7 +14,7 @@ type Product struct {
 	Price float64 `json:"price"`
 }
 
-func CreateProduct(db *gorm.DB, product *Product) error {
+func CreateProduct(ctx context.Context, db *gorm.DB, product *Product) error {
 	err := db.Create(product).Error
 	if err != nil {
 		fmt.Println("Error adding the product to database", err)
@@ -21,14 +22,14 @@ func CreateProduct(db *gorm.DB, product *Product) error {
 	return err
 }
 
-func UpdateProduct(db *gorm.DB, product *Product) error {
+func UpdateProduct(ctx context.Context, db *gorm.DB, product *Product) error {
 	err := db.Save(product).Error
 	if err != nil {
 		fmt.Println("Error adding the product to database", err)
 	}
 	return err
 }
-func DeleteProduct(db *gorm.DB, product *Product, id int) error {
+func DeleteProduct(ctx context.Context, db *gorm.DB, product *Product, id int) error {
 
 	err := db.Where("id = ?", id).Delete(product).Error
 	if err != nil {
@@ -36,7 +37,7 @@ func DeleteProduct(db *gorm.DB, product *Product, id int) error {
 	}
 	return err
 }
-func GetProduct(db *gorm.DB, product *Product, id int) error {
+func GetProduct(ctx context.Context, db *gorm.DB, product *Product, id int) error {
 	err := db.Where("id = ?", id).First(product).Error
 	if err != nil {
 		fmt.Println("Error getting the product from database", err)
@@ -44,7 +45,7 @@ func GetProduct(db *gorm.DB, product *Product, id int) error {
 	return err
 }
 
-func GetProducts(db *gorm.DB, product *[]Product, offset, limit int) error {
+func GetProducts(ctx context.Context, db *gorm.DB, product *[]Product, offset, limit int) error {
 	fmt.Println("#### Inside db #####")
 	var err error
 	if offset != 0 || limit != 0 {

@@ -44,6 +44,7 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 
 func CreateProduct(w http.ResponseWriter, r *http.Request) {
 	var product models.Product
+	ctx := r.Context()
 	productLog.Info("Enter create product")
 	err := json.NewDecoder(r.Body).Decode(&product)
 	if err != nil {
@@ -51,7 +52,7 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
-	err = models.CreateProduct(database.DB, &product)
+	err = models.CreateProduct(ctx, database.DB, &product)
 	if err != nil {
 		productLog.Error(err, "Error creating the product")
 		respondWithError(w, http.StatusInternalServerError, err.Error())
@@ -63,6 +64,7 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 
 func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	productLog.Info("Enter update product")
+	ctx := r.Context()
 	var product models.Product
 	var product_id int
 	var err error
@@ -76,7 +78,7 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	err = models.GetProduct(database.DB, &product, product_id)
+	err = models.GetProduct(ctx, database.DB, &product, product_id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			respondWithError(w, http.StatusBadRequest, "Record not found")
@@ -90,7 +92,7 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		productLog.Error(err, "Error decoding the json ")
 
 	}
-	err = models.UpdateProduct(database.DB, &product)
+	err = models.UpdateProduct(ctx, database.DB, &product)
 	if err != nil {
 		productLog.Error(err, "Error creating the product")
 		respondWithError(w, http.StatusInternalServerError, err.Error())
@@ -101,6 +103,7 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 
 func DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	productLog.Info("Enter delete product")
+	ctx := r.Context()
 	var product models.Product
 	var product_id int
 	var err error
@@ -113,7 +116,7 @@ func DeleteProduct(w http.ResponseWriter, r *http.Request) {
 			respondWithError(w, http.StatusBadRequest, "Invalid product id")
 		}
 	}
-	err = models.DeleteProduct(database.DB, &product, product_id)
+	err = models.DeleteProduct(ctx, database.DB, &product, product_id)
 	if err != nil {
 		productLog.Error(err, "Error deleting the product")
 		respondWithError(w, http.StatusInternalServerError, err.Error())
@@ -123,6 +126,7 @@ func DeleteProduct(w http.ResponseWriter, r *http.Request) {
 
 func GetProduct(w http.ResponseWriter, r *http.Request) {
 	productLog.Info("Enter get product")
+	ctx := r.Context()
 	var product models.Product
 	var product_id int
 	var err error
@@ -136,7 +140,7 @@ func GetProduct(w http.ResponseWriter, r *http.Request) {
 			respondWithError(w, http.StatusBadRequest, "Invalid product id")
 		}
 	}
-	err = models.GetProduct(database.DB, &product, product_id)
+	err = models.GetProduct(ctx, database.DB, &product, product_id)
 	if err != nil {
 		productLog.Error(err, "Error getting the product", err)
 		respondWithError(w, http.StatusInternalServerError, err.Error())
@@ -148,12 +152,13 @@ func GetProduct(w http.ResponseWriter, r *http.Request) {
 func GetProducts(w http.ResponseWriter, r *http.Request) {
 	productLog.Info("Enter get products")
 	var products []models.Product
+	ctx := r.Context()
 	defaultpage := 1
 	defaultlimit := 5
 	query := r.URL.Query()
 	pageParam := query.Get("page")
 	limitParam := query.Get("limit")
-	err := models.GetProducts(database.DB, &products, 0, 0)
+	err := models.GetProducts(ctx, database.DB, &products, 0, 0)
 	if err != nil {
 		productLog.Error(err, "Error getting products list")
 		respondWithError(w, http.StatusInternalServerError, err.Error())
@@ -199,18 +204,18 @@ func GetProducts(w http.ResponseWriter, r *http.Request) {
 
 func GetProductsPaginated(w http.ResponseWriter, r *http.Request) {
 	productLog.Info("Enter get products")
+	ctx := r.Context()
 	var products []models.Product
 	//We extract page and limit parameters from the query string. These determine which portion of the data to send back.
 	//The logic then calculates the start and end indexes based on these parameters and slices the items accordingly.
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 
-	err := models.GetProducts(database.DB, &products, offset, limit)
+	err := models.GetProducts(ctx, database.DB, &products, offset, limit)
 	if err != nil {
 		productLog.Error(err, "Error getting products list")
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 	}
-	ctx := r.Context()
 	fmt.Println("##### context value is #######", ctx.Value("uuid"))
 	respondWithJSON(w, http.StatusOK, products)
 }
